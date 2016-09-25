@@ -24,6 +24,33 @@ public:
                             event_source_(CGEventSourceCreate(kCGEventSourceStateHIDSystemState)),
                             modifier_flag_manager_(),
                             key_repeat_manager_(*this) {
+                                
+                                //=== takahasix ============================================
+                                //=== takahasix ============================================
+                                //=== takahasix ============================================
+                                memset(counter_, 0, sizeof(counter_));
+
+                                // For user, rewrite this config, if you need.
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(4))] = ComplexKey(true, false, false, false, false, false, false, krbn::key_code::left_arrow);
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(8))] = ComplexKey(true, false, false, false, false, false, false, krbn::key_code::right_arrow);
+                                
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(9))] = ComplexKey(false, false, false, false, false, false, false, krbn::key_code::right_arrow);
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(5))] = ComplexKey(false, false, false, false, false, false, false, krbn::key_code::left_arrow);
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(19))] = ComplexKey(false, false, false, false, false, false, false, krbn::key_code::up_arrow);
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(17))] = ComplexKey(false, false, false, false, false, false, false, krbn::key_code::down_arrow);
+                                
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(25))] = ComplexKey(false, false, false, false, false, false, false, krbn::key_code::page_down);
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(20))] = ComplexKey(false, false, false, false, false, false, false, krbn::key_code::page_up);
+                                
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(7))] = ComplexKey(false, false, false, false, false, false, false, krbn::key_code::delete_forward);
+                                ck2ck_[ComplexKey(false, false, false, false, false, true, false, krbn::key_code(11))] = ComplexKey(false, false, false, false, false, false, false, krbn::key_code(42));
+                                
+                                ck2ck_[ComplexKey(true, false, false, false, false, false, false, krbn::key_code(28))] = ComplexKey(true, false, false, true, false, false, false, krbn::key_code(29));
+                                ck2ck_[ComplexKey(false, true, false, false, false, false, false, krbn::key_code(28))] = ComplexKey(true, false, false, true, false, false, false, krbn::key_code(29));
+                                //=== takahasix ============================================
+                                //=== takahasix ============================================
+                                //=== takahasix ============================================
+                                
   }
 
   ~event_manipulator(void) {
@@ -174,6 +201,178 @@ public:
         to_key_code = *key_code;
       }
     }
+      
+      
+      //=== takahasix ============================================
+      //=== takahasix ============================================
+      //=== takahasix ============================================
+      if(shikakari_){
+          
+          // Stop key_repeat_manager.
+          key_repeat_manager_.stop();
+          
+          ComplexKey src = shikakariDst_;
+          ComplexKey dst = shikakariSrc_;
+          
+          // Clear src's key.
+          post_key(src.key_, src.key_, false, false);
+          counter_[(uint32_t)src.key_]--;
+          
+          // Clear src's modifier.
+          if(src.commandLeft_){
+              post_modifier_flag_event(krbn::key_code(227), false);
+              counter_[227]--;
+          }
+          if(src.commandRight_){
+              post_modifier_flag_event(krbn::key_code(231), false);
+              counter_[231]--;
+          }
+          if(src.option_){
+              post_modifier_flag_event(krbn::key_code(226), false);
+              counter_[226]--;
+          }
+          if(src.shiftLeft_){
+              post_modifier_flag_event(krbn::key_code(225), false);
+              counter_[225]--;
+          }
+          if(src.shiftRight_){
+              post_modifier_flag_event(krbn::key_code(229), false);
+              counter_[229]--;
+          }
+          if(src.control_){
+              post_modifier_flag_event(krbn::key_code(224), false);
+              counter_[224]--;
+          }
+          if(src.fn_){
+              post_modifier_flag_event(krbn::key_code(4098), false);
+              counter_[4098]--;
+          }
+          
+          // Set dst's modifier.
+          if(dst.commandLeft_){
+              post_modifier_flag_event(krbn::key_code(227), true);
+              counter_[227]++;
+          }
+          if(dst.commandRight_){
+              post_modifier_flag_event(krbn::key_code(231), true);
+              counter_[231]++;
+          }
+          if(dst.option_){
+              post_modifier_flag_event(krbn::key_code(226), true);
+              counter_[226]++;
+          }
+          if(dst.shiftLeft_){
+              post_modifier_flag_event(krbn::key_code(225), true);
+              counter_[225]++;
+          }
+          if(dst.shiftRight_){
+              post_modifier_flag_event(krbn::key_code(229), true);
+              counter_[229]++;
+          }
+          if(dst.control_){
+              post_modifier_flag_event(krbn::key_code(224), true);
+              counter_[224]++;
+          }
+          if(dst.fn_){
+              post_modifier_flag_event(krbn::key_code(4098), true);
+              counter_[4098]++;
+          }
+          
+          shikakari_ = false;
+      }
+      
+      
+      if(pressed==true && krbn::types::get_modifier_flag(to_key_code)==krbn::modifier_flag::zero){
+          ComplexKey ck(counter_, to_key_code);
+          for(std::map<ComplexKey, ComplexKey>::iterator it=ck2ck_.begin(); it!=ck2ck_.end(); it++){
+              ComplexKey src = it->first;
+              ComplexKey dst = it->second;
+              if(src==ck){
+                  // Clear src's modifier.
+                  if(src.commandLeft_){
+                      post_modifier_flag_event(krbn::key_code(227), false);
+                      counter_[227]--;
+                  }
+                  if(src.commandRight_){
+                      post_modifier_flag_event(krbn::key_code(231), false);
+                      counter_[231]--;
+                  }
+                  if(src.option_){
+                      post_modifier_flag_event(krbn::key_code(226), false);
+                      counter_[226]--;
+                  }
+                  if(src.shiftLeft_){
+                      post_modifier_flag_event(krbn::key_code(225), false);
+                      counter_[225]--;
+                  }
+                  if(src.shiftRight_){
+                      post_modifier_flag_event(krbn::key_code(229), false);
+                      counter_[229]--;
+                  }
+                  if(src.control_){
+                      post_modifier_flag_event(krbn::key_code(224), false);
+                      counter_[224]--;
+                  }
+                  if(src.fn_){
+                      post_modifier_flag_event(krbn::key_code(4098), false);
+                      counter_[4098]--;
+                  }
+                  
+                  // Set dst's modifier.
+                  if(dst.commandLeft_){
+                      post_modifier_flag_event(krbn::key_code(227), true);
+                      counter_[227]++;
+                  }
+                  if(dst.commandRight_){
+                      post_modifier_flag_event(krbn::key_code(231), true);
+                      counter_[231]++;
+                  }
+                  if(dst.option_){
+                      post_modifier_flag_event(krbn::key_code(226), true);
+                      counter_[226]++;
+                  }
+                  if(dst.shiftLeft_){
+                      post_modifier_flag_event(krbn::key_code(225), true);
+                      counter_[225]++;
+                  }
+                  if(dst.shiftRight_){
+                      post_modifier_flag_event(krbn::key_code(229), true);
+                      counter_[229]++;
+                  }
+                  if(dst.control_){
+                      post_modifier_flag_event(krbn::key_code(224), true);
+                      counter_[224]++;
+                  }
+                  if(dst.fn_){
+                      post_modifier_flag_event(krbn::key_code(4098), true);
+                      counter_[4098]++;
+                  }
+                  
+                  // Replace to_key_code with dst's key.
+                  to_key_code = dst.key_;
+                  
+                  shikakariSrc_ = src;
+                  shikakariDst_ = dst;
+                  shikakari_ = true;
+                  
+                  break;
+              }
+          }
+      }
+      
+      
+      if(pressed){
+          counter_[(uint32_t)to_key_code]++;
+      }else{
+          if(counter_[(uint32_t)to_key_code]==0){
+              return;
+          }
+          counter_[(uint32_t)to_key_code]--;
+      }
+      //=== takahasix ============================================
+      //=== takahasix ============================================
+      //=== takahasix ============================================
+
 
     // ----------------------------------------
     // Post input events to karabiner_event_dispatcher
@@ -457,5 +656,126 @@ private:
 
   manipulated_keys manipulated_keys_;
   manipulated_keys manipulated_fn_keys_;
+    
+    //=== takahasix ============================================
+    //=== takahasix ============================================
+    //=== takahasix ============================================
+    class ComplexKey final {
+    public:
+        ComplexKey(){
+        }
+        
+        ComplexKey(bool commandLeft, bool commandRight, bool option, bool shiftLeft, bool shiftRight, bool control, bool fn, krbn::key_code key){
+            commandRight_ = commandRight;
+            commandLeft_ = commandLeft;
+            option_ = option;
+            shiftLeft_ = shiftLeft;
+            shiftRight_ = shiftRight;
+            control_ = control;
+            fn_ = fn;
+            key_ = key;
+        }
+        
+        ComplexKey(int* counter, krbn::key_code key){
+            commandLeft_ = counter[227] != 0;
+            commandRight_ = counter[231] != 0;
+            option_ = counter[226] != 0;
+            shiftLeft_ = counter[225] != 0;
+            shiftRight_ = counter[229] != 0;
+            control_ = counter[224] != 0;
+            fn_ = counter[4098] != 0;
+            key_ = key;
+        }
+        
+        bool operator<(const ComplexKey &ck) const {
+            if(key_ < ck.key_){
+                return true;
+            }else if(key_ > ck.key_){
+                return false;
+            }else{
+                if(commandLeft_ < ck.commandLeft_){
+                    return true;
+                }else if(commandLeft_ > ck.commandLeft_){
+                    return false;
+                }else{
+                    if(commandRight_ < ck.commandRight_){
+                        return true;
+                    }else if(commandRight_ > ck.commandRight_){
+                        return false;
+                    }else{
+                        if(option_ < ck.option_){
+                            return true;
+                        }else if(option_ > ck.option_){
+                            return false;
+                        }else{
+                            if(shiftLeft_ < ck.shiftLeft_){
+                                return true;
+                            }else if(shiftLeft_ > ck.shiftLeft_){
+                                return false;
+                            }else{
+                                if(shiftRight_ < ck.shiftRight_){
+                                    return true;
+                                }else if(shiftRight_ > ck.shiftRight_){
+                                    return false;
+                                }else{
+                                    if(control_ < ck.control_){
+                                        return true;
+                                    }else if(control_ > ck.control_){
+                                        return false;
+                                    }else{
+                                        if(fn_ < ck.fn_){
+                                            return true;
+                                        }else if(fn_ > ck.fn_){
+                                            return false;
+                                        }else{
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        bool operator==(const ComplexKey &ck) const {
+            if(key_ != ck.key_)return false;
+            if(commandLeft_ != ck.commandLeft_)return false;
+            if(commandRight_ != ck.commandRight_)return false;
+            if(option_ != ck.option_)return false;
+            if(shiftLeft_ != ck.shiftLeft_)return false;
+            if(shiftRight_ != ck.shiftRight_)return false;
+            if(control_ != ck.control_)return false;
+            if(fn_ != ck.fn_)return false;
+            return true;
+        }
+        
+        
+        bool isHit(int* counter, krbn::key_code key){
+            ComplexKey ck(counter, key);
+            return *this==ck;
+        }
+        
+        bool commandLeft_;
+        bool commandRight_;
+        bool option_;
+        bool shiftLeft_;
+        bool shiftRight_;
+        bool control_;
+        bool fn_;
+        krbn::key_code key_;
+    };
+    
+    
+    int counter_[5000];
+    std::map<ComplexKey, ComplexKey> ck2ck_;
+    bool shikakari_ = false;
+    ComplexKey shikakariSrc_;
+    ComplexKey shikakariDst_;
+    //=== takahasix ============================================
+    //=== takahasix ============================================
+    //=== takahasix ============================================
+    
 };
 }
